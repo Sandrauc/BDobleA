@@ -1,0 +1,45 @@
+{
+  "name": "Sandrauc/BDobleA",
+  "description": "Balones Doble A",
+  "version": "0.0.1",
+  "type": "project",
+  "keywords": ["console", "tool", "example"],
+  "homepage": "https://google.com",
+  "time": "2020-10-22",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Daniel Quintero,Catalina Perez,Daniela Cubides,Nancy Gutierrez,Sandra Uribe",
+      "email": "sjuribe48@misena.edu.co",
+      "homepage": "http://www.sena.edu.co",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": ">=7.4",
+    "ext-json": "*",
+    "ext-pdo": "*",
+    "almasaeed2010/adminlte": "^3.0",
+    "vlucas/phpdotenv": "^3.6",
+    "nesbot/carbon": "^2.37"
+  },
+  "require-dev": {
+
+  },
+  "autoload": {
+
+  },
+  "scripts": {
+    "post-install-cmd": [
+    ],
+    "post-update-cmd": [
+    ]
+  },
+  "config": {
+    "bin-dir": "vendor/bin"
+  },
+  "extra": {
+
+  }
+}
