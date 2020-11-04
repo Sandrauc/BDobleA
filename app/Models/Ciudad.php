@@ -185,7 +185,7 @@ class Ciudad
     }
 
     //Metodo
-    public function saludar(?string $nombre = "Persona"): string
+    public function saludar(?string $nombre = "Ciudad"): string
     { //Visibilidad, function, nombre metodo(parametros), retorno
         return "Hola " . $this->departamento . ", Soy " . $this->nombre . " de estado " . $this->estado . "  <br/>";
     }
