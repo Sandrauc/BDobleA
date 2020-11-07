@@ -2,7 +2,7 @@
 
 
 
-class detalle_venta
+class DetalleVenta
 {
     public int $id_detalle_venta;
     public int $cantidad;
@@ -201,7 +201,7 @@ class detalle_venta
     123567,
     "sjuribe48@misena.edu.co");
 var_dump($persona->create());*/
-$detalle_venta = new detalle_venta (345, 4,3, 56 );
+$detalle_venta = new detalleVenta (345, 4,3, 56 );
 
 /*$persona = new persona();
 $persona->create();
