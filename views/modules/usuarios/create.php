@@ -128,7 +128,7 @@ require_once("../../partials/check_login.php");
                                             <div class="col-sm-10">
                                                 <select id="rol" name="rol" class="custom-select">
                                                     <option value="Administrador">Administrador</option>
-                                                    <option value="Empleado">Contador</option>
+                                                    <option value="Contador">Contador</option>
 
                                                 </select>
                                             </div>

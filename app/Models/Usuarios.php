@@ -1,17 +1,15 @@
 <?php
-
 namespace App\Models;
 
-require_once (__DIR__ .'/../../vendor/autoload.php');
-require_once('BasicModel.php');
-
+use App\Interfaces\Model;
 use Carbon\Carbon;
+use Exception;
 use JsonSerializable;
 
-class Usuarios extends BasicModel implements JsonSerializable
+class Usuarios extends AbstractDBConnection implements Model, JsonSerializable
 {
     /* Tipos de Datos => bool, int, float,  */
-    private int $id;
+    private ?int $id;
     private string $nombres;
     private string $apellidos;
     private int $documento;
@@ -21,64 +19,54 @@ class Usuarios extends BasicModel implements JsonSerializable
     private ?string $password;
     private string $rol;
     private string $estado;
-
+    private int $ciudad_id;
+    private Carbon $created_at;
+    private Carbon $updated_at;
 
     /* Relaciones */
-    private $CiudadUsuarios;
-
+    private ?Ciudad $ciudad;
 
     /**
-     * usuarios constructor.
-     * @param int $id
-     * @param string $nombres
-     * @param string $apellidos
-     * @param int $documento
-     * @param int $telefono
-     * @param string $email
-     * @param string $user
-     * @param string $password
-     * @param string $rol
-     * @param string $estado
-
-
+     * Usuarios constructor. Recibe un array asociativo
+     * @param array $usuario
      */
-    public function __construct($usuario = array())
+    public function __construct(array $usuario = [])
     {
-        parent::__construct(); //Llama al contructor padre "la clase conexion" para conectarme a la BD
-        $this->id = $usuario['id'] ?? 0;
-        $this->nombres = $usuario['nombres'] ?? '';
-        $this->apellidos = $usuario['apellidos'] ?? '';
-        $this->documento = $usuario['documento'] ?? 0;
-        $this->telefono = $usuario['telefono'] ?? 0;
-        $this->email = $usuario['email'] ?? '';
-        $this->user = $usuario['user'] ?? null;
-        $this->password = $usuario['password'] ?? null;
-        $this->rol = $usuario['rol'] ?? '';
-        $this->estado = $usuario['estado'] ?? '';
-
+        parent::__construct();
+        $this->setId($usuario['id'] ?? NULL);
+        $this->setNombres($usuario['nombres'] ?? '');
+        $this->setApellidos($usuario['apellidos'] ?? '');
+        $this->setDocumento($usuario['documento'] ?? 0);
+        $this->setTelefono($usuario['telefono'] ?? 0);
+        $this->setEmail($usuario['email'] ?? '');
+        $this->setUser($usuario['user'] ?? null);
+        $this->setPassword($usuario['password'] ?? null);
+        $this->setRol($usuario['rol'] ?? '');
+        $this->setEstado($usuario['estado'] ?? '');
+        $this->setCiudadId($usuario['ciudad_id'] ?? 0);
+        $this->setCreatedAt(!empty($usuario['created_at']) ? Carbon::parse($usuario['created_at']) : new Carbon());
+        $this->setUpdatedAt(!empty($usuario['updated_at']) ? Carbon::parse($usuario['updated_at']) : new Carbon());
     }
 
-    /* Metodo destructor cierra la conexion. */
-    /**
-     *
-     */
     function __destruct()
     {
-        $this->Disconnect();
+        if($this->isConnected){
+            $this->Disconnect();
+        }
     }
 
     /**
      * @return int|mixed
      */
-    public function getId() : int
+    public function getId() : ?int
     {
         return $this->id;
     }
 
     /**
-     * @param int|mixed $id
+     * @param int|null $id
      */
-    public function setId(int $id): void
+    public function setId(?int $id): void
     {
         $this->id = $id;
     }
@@ -88,7 +76,7 @@ class Usuarios extends BasicModel implements JsonSerializable
      */
     public function getNombres() : string
     {
-        return $this->nombres;
+        return ucwords($this->nombres);
     }
 
     /**
@@ -96,7 +84,7 @@ class Usuarios extends BasicModel implements JsonSerializable
      */
     public function setNombres(string $nombres): void
     {
-        $this->nombres = $nombres;
+        $this->nombres = trim(mb_strtolower($nombres, 'UTF-8'));
     }
 
     /**
@@ -104,7 +92,7 @@ class Usuarios extends BasicModel implements JsonSerializable
      */
     public function getApellidos() : string
     {
-        return $this->apellidos;
+        return ucwords($this->apellidos);
     }
 
     /**
@@ -112,8 +100,9 @@ class Usuarios extends BasicModel implements JsonSerializable
      */
     public function setApellidos(string $apellidos): void
     {
-        $this->apellidos = $apellidos;
+        $this->apellidos = trim(mb_strtolower($apellidos, 'UTF-8'));
     }
+
 
 
     /**
@@ -165,7 +154,6 @@ class Usuarios extends BasicModel implements JsonSerializable
     }
 
 
-
     /**
      * @return mixed|string
      */
@@ -198,6 +186,8 @@ class Usuarios extends BasicModel implements JsonSerializable
         $this->password = $password;
     }
 
+
+
     /**
      * @return mixed|string
      */
@@ -229,122 +219,180 @@ class Usuarios extends BasicModel implements JsonSerializable
     {
         $this->estado = $estado;
     }
+    /**
+     * @return int
+     */
+    public function getCiudadId(): int
+    {
+        return $this->ciudad_id;
+    }
 
+    /**
+     * @param int $ciudad_id
+     */
+    public function setCiudadId(int $ciudad_id): void
+    {
+        $this->ciudad_id = $ciudad_id;
+    }
 
 
     /**
-     * @return bool
-     * @throws \Exception
+     * @return Carbon|mixed
      */
-    public function create(): bool
+    public function getCreatedAt() : Carbon
     {
-        $result = $this->insertRow("INSERT INTO dbdoblea.usuarios VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)", array(
-                $this->nombres,
-                $this->apellidos,
-                $this->documento,
-                $this->telefono,
-                $this->email,
-                $this->user,
-                $this->password,
-                $this->rol,
-                $this->estado,
-            )
-        );
+        return $this->created_at->locale('es');
+    }
+
+    /**
+     * @param Carbon|mixed $created_at
+     */
+    public function setCreatedAt(Carbon $created_at): void
+    {
+        $this->created_at = $created_at;
+    }
+
+    /**
+     * @return Carbon
+     */
+    public function getUpdatedAt(): Carbon
+    {
+        return $this->updated_at->locale('es');
+    }
+
+    /**
+     * @param Carbon $updated_at
+     */
+    public function setUpdatedAt(Carbon $updated_at): void
+    {
+        $this->updated_at = $updated_at;
+    }
+
+    /**
+     * @return Ciudad
+     */
+    public function getCiudad(): ?Ciudad
+    {
+        if(!empty($this->ciudad_id)){
+            $this->ciudad = Ciudad::searchForId($this->ciudad_id) ?? new Ciudad();
+            return $this->ciudad;
+        }
+        return NULL;
+    }
+
+
+
+    protected function save(string $query): ?bool
+    {
+        $arrData = [
+            ':id' =>    $this->getId(),
+            ':nombres' =>   $this->getNombres(),
+            ':apellidos' =>   $this->getApellidos(),
+            ':documento' =>   $this->getDocumento(),
+            ':telefono' =>   $this->getTelefono(),
+            ':email' =>   $this->getEmail(),
+            ':user' =>  $this->getUser(),
+            ':password' =>   $this->getPassword(),
+            ':rol' =>   $this->getRol(),
+            ':estado' =>   $this->getEstado(),
+            ':ciudad_id' =>   $this->getCiudadId(),
+            ':created_at' =>  $this->getCreatedAt()->toDateTimeString(), //YYYY-MM-DD HH:MM:SS
+            ':updated_at' =>  $this->getUpdatedAt()->toDateTimeString()
+        ];
+        $this->Connect();
+        $result = $this->insertRow($query, $arrData);
         $this->Disconnect();
         return $result;
     }
 
     /**
-     * @return bool
+     * @return bool|null
      */
-    public function update(): bool
+    public function insert(): ?bool
     {
-        $result = $this->updateRow("UPDATE dbdoblea.usuarios SET nombres = ?, apellidos = ?, documento = ?, telefono = ?, email = ?,  user = ?, password = ?, rol = ?, estado = ? WHERE id = ?", array(
-                $this->nombres,
-                $this->apellidos,
-                $this->documento,
-                $this->telefono,
-                $this->email,
-                $this->user,
-                $this->password,
-                $this->rol,
-                $this->estado,
-                $this->id,
-            )
-        );
-        $this->Disconnect();
-        return $result;
+        $query = "INSERT INTO dbdoblea.usuarios VALUES (
+            :id,:nombres,:apellidos,:documento, :telefono,:email,:user,
+            :password,:rol,:estado,ciudad_id,:created_at,:updated_at
+        )";
+        return $this->save($query);
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function update(): ?bool
+    {
+        $query = "UPDATE dbdoblea.usuarios SET 
+            nombres = :nombres, apellidos = :apellidos,  
+            documento = :documento, telefono = :telefono, email = :email, 
+            user = :user,  password = :password, foto = :foto, rol = :rol, estado = :estado, ciudad_id = :ciudad_id, created_at = :created_at, 
+            updated_at = :updated_at WHERE id = :id";
+        return $this->save($query);
     }
 
     /**
      * @param $id
      * @return bool
+     * @throws Exception
      */
-    public function deleted($id): bool
+    public function deleted(): bool
     {
-        $User = Usuarios::searchForId($id); //Buscando un usuario por el ID
-        $User->setEstado("Inactivo"); //Cambia el estado del usuarios
-        return $User->update();                    //Guarda los cambios..
+        $this->setEstado("Inactivo"); //Cambia el estado del Usuario
+        return $this->update();                    //Guarda los cambios..
     }
 
     /**
      * @param $query
      * @return Usuarios|array
-     * @throws \Exception
+     * @throws Exception
      */
-    public static function search($query) : array
+    public static function search($query) : ?array
     {
-        $arrUsuarios = array();
-        $tmp = new Usuarios();
-        $getrows = $tmp->getRows($query);
+        try {
+            $arrUsuarios = array();
+            $tmp = new Usuarios();
+            $tmp->Connect();
+            $getrows = $tmp->getRows($query);
+            $tmp->Disconnect();
 
-        foreach ($getrows as $valor) {
-            $Usuario = new Usuarios();
-            $Usuario->id = $valor['id'];
-            $Usuario->nombres = $valor['nombres'];
-            $Usuario->apellidos = $valor['apellidos'];
-            $Usuario->documento = $valor['documento'];
-            $Usuario->telefono = $valor['telefono'];
-            $Usuario->email = $valor['email'];
-            $Usuario->user = $valor['user'];
-            $Usuario->password = $valor['password'];
-            $Usuario->rol = $valor['rol'];
-            $Usuario->estado = $valor['estado'];
-            $Usuario->Disconnect();
-            array_push($arrUsuarios, $Usuario);
+            foreach ($getrows as $valor) {
+                $Usuario = new Usuarios($valor);
+                array_push($arrUsuarios, $Usuario);
+                unset($Usuario);
+            }
+            return $arrUsuarios;
+        } catch (Exception $e) {
+            GeneralFunctions::logFile('Exception',$e, 'error');
         }
-        $tmp->Disconnect();
-        return $arrUsuarios;
+        return null;
     }
 
     /**
      * @param $id
      * @return Usuarios
-     * @throws \Exception
+     * @throws Exception
      */
-    public static function searchForId($id): Usuarios
+    public static function searchForId(int $id): ?Usuarios
     {
-        $Usuario = null;
-        if ($id > 0) {
-            $Usuario = new Usuarios();
-            $getrow = $Usuario->getRow("SELECT * FROM dbdoblea.usuarios WHERE id =?", array($id));
-            $Usuario->id = $getrow['id'];
-            $Usuario->nombres = $getrow['nombres'];
-            $Usuario->apellidos = $getrow['apellidos'];
-            $Usuario->documento = $getrow['documento'];
-            $Usuario->telefono = $getrow['telefono'];
-            $Usuario->email = $getrow['email'];
-            $Usuario->user = $getrow['user'];
-            $Usuario->password = $getrow['password'];
-            $Usuario->rol = $getrow['rol'];
-            $Usuario->estado = $getrow['estado'];
+        try {
+            if ($id > 0) {
+                $tmpUsuario = new Usuarios();
+                $tmpUsuario->Connect();
+                $getrow = $tmpUsuario->getRow("SELECT * FROM dbdoblea.usuarios WHERE id =?", array($id));
+                $tmpUsuario->Disconnect();
+                return ($getrow) ? new Usuarios($getrow) : null;
+            }else{
+                throw new Exception('Id de usuario Invalido');
+            }
+        } catch (Exception $e) {
+            GeneralFunctions::logFile('Exception',$e, 'error');
         }
-        $Usuario->Disconnect();
-        return $Usuario;
+        return null;
     }
 
     /**
      * @return array
+     * @throws Exception
      */
     public static function getAll(): array
     {
@@ -354,12 +402,12 @@ class Usuarios extends BasicModel implements JsonSerializable
     /**
      * @param $documento
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public static function usuarioRegistrado($documento): bool
     {
         $result = Usuarios::search("SELECT * FROM dbdoblea.usuarios where documento = " . $documento);
-        if ( count ($result) > 0 ) {
+        if ( !empty($result) && count ($result) > 0 ) {
             return true;
         } else {
             return false;
@@ -379,33 +427,31 @@ class Usuarios extends BasicModel implements JsonSerializable
      */
     public function __toString() : string
     {
-        return "Nombres: $this->nombres, Apellidos: $this->apellidos, Documento: $this->documento, Telefono: $this->telefono, email: $this->email()";
+        return "Nombres: $this->nombres, Apellidos: $this->nombres, Documento: $this->documento, Telefono: $this->telefono, Email: $this->email,()";
     }
 
     public function Login($User, $Password){
-        $resultUsuarios = Usuarios::search("SELECT * FROM usuarios WHERE user = '$User'");
-        if(count($resultUsuarios) >= 1){
-            if($resultUsuarios[0]->password == $Password){
-                if($resultUsuarios[0]->estado == 'Activo'){
-                    return $resultUsuarios[0];
+        try {
+            $resultUsuarios = Usuarios::search("SELECT * FROM usuarios WHERE user = '$User'");
+            if(count($resultUsuarios) >= 1){
+                if($resultUsuarios[0]->password == $Password){
+                    if($resultUsuarios[0]->estado == 'Activo'){
+                        return $resultUsuarios[0];
+                    }else{
+                        return "Usuario Inactivo";
+                    }
                 }else{
-                    return "usuarios Inactivo";
+                    return "Contraseña Incorrecta";
                 }
             }else{
-                return "Contraseña Incorrecta";
+                return "Usuario Incorrecto";
             }
-        }else{
-            return "usuarios Incorrecto";
+        } catch (Exception $e) {
+            GeneralFunctions::logFile('Exception',$e, 'error');
+            return "Error en Servidor";
         }
     }
 
-    /**
-     * Specify data which should be serialized to JSON
-     * @link https://php.net/manual/en/jsonserializable.jsonserialize.php
-     * @return mixed data which can be serialized by <b>json_encode</b>,
-     * which is a value of any type other than a resource.
-     * @since 5.4
-     */
     public function jsonSerialize()
     {
         return [
@@ -414,12 +460,14 @@ class Usuarios extends BasicModel implements JsonSerializable
             'apellidos' => $this->getApellidos(),
             'documento' => $this->getDocumento(),
             'telefono' => $this->getTelefono(),
-            'direccion' => $this->getEmail(),
+            'email' => $this->getEmail(),
             'user' => $this->getUser(),
             'password' => $this->getPassword(),
             'rol' => $this->getRol(),
             'estado' => $this->getEstado(),
-
+            'ciudad_id' => $this->getCiudadId(),
+            'created_at' => $this->getCreatedAt()->toDateTimeString(),
+            'updated_at' => $this->getUpdatedAt()->toDateTimeString(),
         ];
     }
 }

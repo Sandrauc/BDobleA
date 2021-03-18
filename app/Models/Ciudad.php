@@ -1,65 +1,69 @@
 <?php
-
 namespace App\Models;
 
-require_once (__DIR__ .'/../../vendor/autoload.php');
-require_once ('Ciudad.php');
-require_once('BasicModel.php');
+use App\Models\Interfaces\Model;
+use Carbon\Carbon;
+use Exception;
+use JsonSerializable;
 
-
-class Ciudad extends BasicModel
+final class Ciudad extends AbstractDBConnection implements Model, JsonSerializable
 {
     private int $id;
     private string $departamento;
     private string $nombre_ciudad;
-    private int $cod_dane;
+    private int  $cod_dane;
     private string $estado;
+    private Carbon $created_at;
+    private Carbon $updated_at;
+    private Carbon $deleted_at;
+
+
 
     /**
-     * Ventas constructor.
-     * @param int $id
-     * @param string $departamento
-     * @param string $nombre_ciudad
-     * @param int $codigo_dane
-     * @param string $estado
+     * Municipios constructor. Recibe un array asociativo
+     * @param array $Ciudad
+     * @throws Exception
      */
-    public function __construct($venta = array())
+    public function __construct(array $Ciudad = [])
     {
         parent::__construct();
-        $this->id = $Ciudad['id'] ?? 0;
-        $this->departamento = $Ciudad['departamento'] ?? '';
-        $this->nombre_ciudad = $Ciudad['nommbre_ciudad'] ?? '';
-        $this->cod_dane = $Ciudad['cod_dane'] ?? '';
-        $this->estado = $Ciudad['estado'] ?? '';
+        $this->setId($Ciudad['id'] ?? NULL);
+        $this->setDepartamento($Ciudad['departamento_id'] ?? '');
+        $this->setNombreCiudad($Ciudad['nombre_ciudad'] ?? '');
+        $this->setCodDane($Ciudad['cod_dane'] ?? '');
+        $this->setEstado($Ciudad['estado'] ?? '');
+        $this->setCreatedAt(!empty($Ciudad['created_at']) ? Carbon::parse($Ciudad['created_at']) : new Carbon());
+        $this->setUpdatedAt(!empty($Ciudad['updated_at']) ? Carbon::parse($Ciudad['updated_at']) : new Carbon());
+        $this->setDeletedAt(!empty($Ciudad['deleted_at']) ? Carbon::parse($Ciudad['deleted_at']) : new Carbon());
     }
 
-    /**
-     *
-     */
-    function __destruct()
+    public function __destruct()
     {
-        $this->Disconnect();
+        if($this->isConnected){
+            $this->Disconnect();
+        }
     }
 
     /**
-     * @return int|mixed
-     * @return int|mixed
+     * @return int $id
      */
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
 
     /**
-     * @param int|mixed $id
+     * @param int $id
+
      */
     public function setId(int $id): void
     {
         $this->id = $id;
+
     }
 
     /**
-     * @return mixed|string
+     * @return string
      */
     public function getDepartamento(): string
     {
@@ -67,46 +71,49 @@ class Ciudad extends BasicModel
     }
 
     /**
-     * @param mixed|string $departamento
+     * @param string $departamento
+
      */
     public function setDepartamento(string $departamento): void
     {
         $this->departamento = $departamento;
+
     }
 
     /**
-     * @return mixed|string $nombre_ciudad
+     * @return string
      */
-    public function getNombreCiudad(): Usuarios
+    public function getNombreCiudad(): string
     {
         return $this->nombre_ciudad;
     }
 
     /**
-     * @param mixed|string $nombre_ciudad
+     * @param string $nombre_ciudad
      */
-    public function setNombreCiudad(Ciudad $nombre_ciudad): void
+    public function setNombreCiudad(int $nombre_ciudad): void
     {
         $this->nombre_ciudad = $nombre_ciudad;
     }
+
     /**
-     * @return mixed|int $cod_dane
+     * @return int
      */
-    public function getCodDane(): int
+    public function getCodDane(): string
     {
         return $this->cod_dane;
     }
 
     /**
-     * @param mixed|int $cod_dane
+     * @param int $cod_dane
      */
-    public function setCodDane(Ciudad $cod_dane): void
+    public function setCodDane(int $cod_dane): void
     {
         $this->cod_dane = $cod_dane;
     }
 
     /**
-     * @return mixed|string $estado
+     * @return string
      */
     public function getEstado(): string
     {
@@ -114,134 +121,128 @@ class Ciudad extends BasicModel
     }
 
     /**
-     * @param mixed|string $estado
+     * @param string $estado
      */
-    public function setEstado(float $estado): void
+    public function setEstado(string $estado): void
     {
         $this->estado = $estado;
     }
 
     /**
-     * @return mixed
+     * @return Carbon
      */
-    public function create(): bool
+    public function getCreatedAt(): Carbon
     {
-        $result = $this->insertRow("INSERT INTO dbdoblea.ciudad VALUES (NULL, ?, ?, ?, ?)", array(
-                $this->departamento,
-                $this->nombre_ciudad->getNombreCiudad(),
-                $this->cod_dane->getCodDane(),
-                $this->estado
-            )
-        );
-        $this->setId(($result) ? $this->getLastId() : null);
-        $this->Disconnect();
-        return $result;
+        return $this->created_at->locale('es');
     }
 
     /**
-     * @return mixed
+     * @param Carbon $created_at
      */
-    public function update(): bool
+    public function setCreatedAt(Carbon $created_at): void
     {
-        $result = $this->updateRow("UPDATE dbdoblea.ciudad SET departamento = ?, nombre_ciudad= ?, cod_dane= ?, estado = ? WHERE id = ?", array(
-                $this->departamento,
-                $this->nombre_ciudad,
-                $this->cod_dane,
-                $this->estado,
-                $this->id
-            )
-        );
-        $this->Disconnect();
-        return $result;
+        $this->created_at = $created_at;
     }
 
     /**
-     * @param $id
-     * @return mixed
+     * @return Carbon
      */
-    public function deleted($id): bool
+    public function getUpdatedAt(): Carbon
     {
-        $Venta = Ciudad::searchForId($id); //Buscando un usuario por el ID
-        $Venta->setEstado("Inactivo"); //Cambia el estado del Usuario
-        return $Venta->update();                    //Guarda los cambios..
+        return $this->updated_at->locale('es');
     }
 
     /**
-     * @param $query
-     * @return mixed
+     * @param Carbon $updated_at
      */
-    public static function search($query): array
+    public function setUpdatedAt(Carbon $updated_at): void
     {
-        $arrVentas = array();
-        $tmp = new Ciudad();
-        $getrows = $tmp->getRows($query);
+        $this->updated_at = $updated_at;
+    }
 
-        foreach ($getrows as $valor) {
-            $Ciudad = new Ciudad();
-            $Ciudad->id = $valor['id'];
-            $Ciudad->departamento = $valor['departamento'];
-            $Ciudad->nombre_ciudad = $valor['nombre_ciudad'];
-            $Ciudad->cod_dane = $valor['cod_dane'];
-            $Ciudad->estado = $valor['estado'];
-            $Ciudad->Disconnect();
-            array_push($arrCiudad, $Ciudad);
+    /**
+     * @return Carbon
+     */
+    public function getDeletedAt(): Carbon
+    {
+        return $this->deleted_at->locale('es');
+    }
+
+    /**
+     * @param Carbon $deleted_at
+     */
+    public function setDeletedAt(Carbon $deleted_at): void
+    {
+        $this->deleted_at = $deleted_at;
+    }
+
+
+
+    static function search($query): ?array
+    {
+        try {
+            $arrCiudad= array();
+            $tmp = new Ciudad();
+            $tmp->Connect();
+            $getrows = $tmp->getRows($query);
+            $tmp->Disconnect();
+
+            foreach ($getrows as $valor) {
+                $Ciudad = new Ciudad($valor);
+                array_push($arrCiudad, $Ciudad);
+                unset($Ciudad);
+            }
+            return $arrCiudad;
+        } catch (Exception $e) {
+            GeneralFunctions::logFile('Exception',$e, 'error');
         }
-
-        $tmp->Disconnect();
-        return $arrCiudad;
+        return null;
     }
 
-    /**
-     * @param $id
-     * @return mixed
-     */
-    public static function searchForId($id): Ciudad
-    {
-        $Ciudad = null;
-        if ($id > 0) {
-            $Ciudad = new Ciudad();
-            $getrow = $Ciudad->getRow("SELECT * FROM dbdoblea.ciudad WHERE id =?", array($id));
-            $Ciudad->id = $getrow['id'];
-            $Ciudad->departamento = $getrow['departamento'];
-            $Ciudad->nombre_ciudad = $getrow['nombre_ciudad'];
-            $Ciudad->cod_dane = $getrow['cod_dane'];
-            $Ciudad->estado = $getrow['estado'];
-        }
-        $Ciudad->Disconnect();
-        return $Ciudad;
-    }
-
-    /**
-     * @return mixed
-     */
-    public static function getAll(): array
+    static function getAll(): array
     {
         return Ciudad::search("SELECT * FROM dbdoblea.ciudad");
     }
 
-    /**
-     * @return string
-     */
-    public function __toString(): string
+    static function searchForId(int $id): ?object
     {
-        return "Departamento: $this->departamento, NombreCiudad: $this->nombre_ciudad, CodDane: $this->cod_dane, Estado: $this->estado";
+        try {
+            if ($id > 0) {
+                $tmpMun = new Ciudad();
+                $tmpMun->Connect();
+                $getrow = $tmpMun->getRow("SELECT * FROM dbdoblea. WHERE id =?", array($id));
+                $tmpMun->Disconnect();
+                return ($getrow) ? new Ciudad($getrow) : null;
+            }else{
+                throw new Exception('Id de municipio Invalido');
+            }
+        } catch (Exception $e) {
+            GeneralFunctions::logFile('Exception',$e, 'error');
+        }
+        return null;
     }
 
+    public function __toString() : string
+    {
+        return "Nombre: $this->nombre_ciudad, Estado: $this->estado";
+    }
 
-    /**
-     * Specify data which should be serialized to JSON
-     * @link https://php.net/manual/en/jsonserializable.jsonserialize.php
-     * @return mixed data which can be serialized by <b>json_encode</b>,
-     * which is a value of any type other than a resource.
-     * @since 5.4
-     */
     public function jsonSerialize()
     {
         return [
+            'id' => $this->getId(),
             'departamento' => $this->getDepartamento(),
             'nombre_ciudad' => $this->getNombreCiudad(),
             'cod_dane' => $this->getCodDane(),
             'estado' => $this->getEstado(),
+            'created_at' => $this->getCreatedAt()->toDateTimeString(),
+            'updated_at' => $this->getUpdatedAt()->toDateTimeString(),
+            'deleted_at' => $this->getDeletedAt()->toDateTimeString(),
         ];
     }
+
+    protected function save(string $query): ?bool { return null; }
+    function insert(){ }
+    function update() { }
+    function deleted() { }
 }
