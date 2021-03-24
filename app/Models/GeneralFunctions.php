@@ -3,6 +3,14 @@
 namespace App\Models;
 
 use Dotenv\Dotenv;
+use Dotenv\Environment\Adapter\EnvConstAdapter;
+use Dotenv\Environment\Adapter\ServerConstAdapter;
+use Dotenv\Environment\DotenvFactory;
+use Exception;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use NumberFormatter;
 use Verot\Upload\Upload;
 
 require(__DIR__ .'/../../vendor/autoload.php');

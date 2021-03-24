@@ -1,7 +1,8 @@
 <?php
+
 namespace App\Models;
 
-use App\Models\Interfaces\Model;
+use App\Interfaces\Model;
 use Carbon\Carbon;
 use Exception;
 use JsonSerializable;

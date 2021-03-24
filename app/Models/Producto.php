@@ -23,6 +23,7 @@ class Producto extends AbstractDBConnection implements Model, JsonSerializable
 
     /* Relaciones */
 
+
     /**
      * Producto constructor. Recibe un array asociativo
      * @param array $categoria
@@ -89,6 +90,7 @@ class Producto extends AbstractDBConnection implements Model, JsonSerializable
 
     /**
      * @param mixed|string $nombre
+     * @return float
      */
     public function settamano(string $tamano): float
     {
@@ -220,27 +222,11 @@ class Producto extends AbstractDBConnection implements Model, JsonSerializable
     {
         $this->updated_at = $updated_at;
     }
-/*
-     * @return categoria
-     /
-    public function getcategoria(): ?Categoria
-    {
-        if(!empty($this->categoria)){
-            $this->categoria = Categoria::searchForId($this->categoria) ?? new Categoria();
-            return $this->categoria;
-        }
-        return NULL;
-    }
-*/
+
     /**
      * retorna un array de fotos que pertenecen al producto
      * @return array
      */
-    public function getFotosProducto(): ?array
-    {
-        $this->fotosProducto = Fotos::search("SELECT * FROM BDobleA.fotos WHERE producto = ".$this->id_producto." and estado = 'Activo'");
-        return $this->fotosProducto;
-    }
 
     protected function save(string $query): ?bool
     {
@@ -268,7 +254,7 @@ class Producto extends AbstractDBConnection implements Model, JsonSerializable
      */
     function insert(): ?bool
     {
-        $query = "INSERT INTO dbdoblea.productos VALUES (:id_producto,:nombre,:tamano,:precio,:descripcion,:estado,:stok,:precio_base,:categoria,:created_at,:updated_at)";
+        $query = "INSERT INTO dbdoblea.producto VALUES (:id_producto,:nombre,:tamano,:precio,:descripcion,:estado,:stok,:precio_base,:categoria,:created_at,:updated_at)";
         return $this->save($query);
     }
 
@@ -277,10 +263,9 @@ class Producto extends AbstractDBConnection implements Model, JsonSerializable
      */
     public function update(): ?bool
     {
-        $query = "UPDATE weber.productos SET 
-            nombre = :nombre, precio = :precio, porcentaje_ganancia = :porcentaje_ganancia, 
-            stock = :stock, categoria_id = :categoria_id, estado = :estado, created_at = :created_at, 
-            updated_at = :updated_at WHERE id = :id";
+        $query = "UPDATE dbdoblea.producto SET 
+            nombre = :nombre, tamano = :tamano, precio = :precio, descripcion = :descripcion, estado = :estado, stock = :stock, precio_base = :precio_base, created_at = :created_at, 
+            updated_at = :updated_at WHERE id_producto = :id_producto";
         return $this->save($query);
     }
 
@@ -296,24 +281,24 @@ class Producto extends AbstractDBConnection implements Model, JsonSerializable
 
     /**
      * @param $query
-     * @return Productos|array
+     * @return Producto|array
      * @throws Exception
      */
     public static function search($query) : ?array
     {
         try {
-            $arrProductos = array();
-            $tmp = new Productos();
+            $arrProducto = array();
+            $tmp = new Producto();
             $tmp->Connect();
             $getrows = $tmp->getRows($query);
             $tmp->Disconnect();
 
             foreach ($getrows as $valor) {
-                $Producto = new Productos($valor);
+                $Producto = new Producto($valor);
                 array_push($arrProductos, $Producto);
                 unset($Producto);
             }
-            return $arrProductos;
+            return $arrProducto;
         } catch (Exception $e) {
             GeneralFunctions::logFile('Exception',$e, 'error');
         }
@@ -322,18 +307,18 @@ class Producto extends AbstractDBConnection implements Model, JsonSerializable
 
     /**
      * @param $id
-     * @return Productos
+     * @return Producto
      * @throws Exception
      */
-    public static function searchForId($id) : ?Productos
+    public static function searchForId($id_producto) : ?Producto
     {
         try {
-            if ($id > 0) {
-                $Producto = new Productos();
+            if ($id_producto > 0) {
+                $Producto = new Producto();
                 $Producto->Connect();
-                $getrow = $Producto->getRow("SELECT * FROM weber.productos WHERE id =?", array($id));
+                $getrow = $Producto->getRow("SELECT * FROM dbdoblea.producto WHERE id_producto =?", array($id_producto));
                 $Producto->Disconnect();
-                return ($getrow) ? new Productos($getrow) : null;
+                return ($getrow) ? new Producto($getrow) : null;
             }else{
                 throw new Exception('Id de producto Invalido');
             }
@@ -349,7 +334,7 @@ class Producto extends AbstractDBConnection implements Model, JsonSerializable
      */
     public static function getAll() : ?array
     {
-        return Productos::search("SELECT * FROM weber.productos");
+        return Producto::search("SELECT * FROM dbdoblea.producto");
     }
 
     /**
@@ -360,7 +345,7 @@ class Producto extends AbstractDBConnection implements Model, JsonSerializable
     public static function productoRegistrado($nombre): bool
     {
         $nombre = trim(strtolower($nombre));
-        $result = Productos::search("SELECT id FROM weber.productos where nombre = '" . $nombre. "'");
+        $result = Producto::search("SELECT id FROM dbdoblea.producto where nombre = '" . $nombre. "'");
         if ( !empty($result) && count ($result) > 0 ) {
             return true;
         } else {
@@ -368,21 +353,7 @@ class Producto extends AbstractDBConnection implements Model, JsonSerializable
         }
     }
 
-    /**
-     * @return float|mixed
-     */
-    public function getPrecioVenta() : float
-    {
-        return $this->precio + ($this->precio * ($this->porcentaje_ganancia / 100));
-    }
 
-    /**
-     * @return string
-     */
-    public function __toString() : string
-    {
-        return "Nombre: $this->nombre, Precio: $this->precio, Porcentaje: $this->porcentaje_ganancia, Stock: $this->stock, Estado: $this->estado";
-    }
 
     public function substractStock(int $quantity)
     {
@@ -414,13 +385,14 @@ class Producto extends AbstractDBConnection implements Model, JsonSerializable
     public function jsonSerialize()
     {
         return [
-            'nombre' => $this->getNombre(),
+            'nombre' => $this->getnombre(),
+            'tamano' => $this->gettamano(),
             'precio' => $this->getPrecio(),
-            'porcentaje_ganancias' => $this->getPorcentajeGanancia(),
-            'precio_venta' => $this->getPrecioVenta(),
-            'stock' => $this->getStock(),
-            'categoria' => $this->getCategoria()->jsonSerialize(),
+            'descripcion' => $this->getdescripcion(),
             'estado' => $this->getEstado(),
+            'stock' => $this->getStock(),
+            'precio_base' => $this->getprecio_base(),
+            'categoria' => $this->getcategoria(),
         ];
     }
 }

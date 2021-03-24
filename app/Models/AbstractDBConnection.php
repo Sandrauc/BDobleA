@@ -9,8 +9,7 @@ use PDOException;
 /**
  * Created by PhpStorm.
  * @author: Nancy Gutierrez
- * Date: 10/12/2020
- * Time: 9:17
+}
  */
 
 abstract class AbstractDBConnection {
@@ -123,6 +122,7 @@ abstract class AbstractDBConnection {
                 foreach ($params as $key => $value){
                     $stmt->bindValue($key, $value);
                 }
+                $this->getStringQuery($query, $params);
                 return $stmt->execute();
             }
             throw new Exception("Consulta vacía o errónea");

@@ -10,9 +10,8 @@ use PDOException;
 
 /**
  * Created by PhpStorm.
- * User:
- * Date: 10/12/2020
- * Time: 9:17
+ * User: Nancy Gutierrez
+
  */
 
 abstract class BasicModel {
