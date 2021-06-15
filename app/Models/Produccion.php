@@ -9,34 +9,27 @@ use JsonSerializable;
 
 class Produccion extends AbstractDBConnection implements Model, JsonSerializable
 {
-    /* Tipos de Datos => bool, int, float,  */
-    public ?int $id_produccion;
-    public carbon $fecha;
-    public ?int $cantidad;
-    public ?int $producto_id;
+    private ?int $id_produccion;
+    private carbon $fecha;
+    private int $cantidad;
+    private Carbon $created_at;
+    private Carbon $updated_at;
 
-    public array $producto;
-    public  $updated_at;
-    public $created_at;
+    /* Relaciones */
 
 
     /**
-     * Usuarios constructor. Recibe un array asociativo
+     * Producto constructor. Recibe un array asociativo
      * @param array $produccion
      */
-    public function __construct(array $usuario = [])
-
+    public function __construct(array $produccion = [])
     {
         parent::__construct();
-        $this->setId_produccion($produccion['id'] ?? NULL);
-        $this->setFecha( !empty($produccion['fecha']) ? Carbon::parse($produccion['fecha']) : new Carbon());
-        $this->setproducto_id($produccion['produccion_id'] ?? '');
-        $this->setCreatedAt(!empty($usuario['created_at']) ? Carbon::parse($usuario['created_at']) : new Carbon());
-        $this->setUpdatedAt(!empty($usuario['updated_at']) ? Carbon::parse($usuario['updated_at']) : new Carbon());
-    }
-
-    public static function productoRegistrado($fecha)
-    {
+        $this->setId_produccion($produccion['id_produccion'] ?? NULL);
+        $this->setFecha(!empty($produccion['fecha']) ? Carbon::parse($produccion['fecha']) : new Carbon());
+        $this->setCantidad($produccion['cantidad'] ?? 0.0);
+        $this->setCreatedAt(!empty($produccion['created_at']) ? Carbon::parse($produccion['created_at']) : new Carbon());
+        $this->setUpdatedAt(!empty($produccion['updated_at']) ? Carbon::parse($produccion['updated_at']) : new Carbon());
     }
 
     function __destruct()
@@ -47,7 +40,7 @@ class Produccion extends AbstractDBConnection implements Model, JsonSerializable
     }
 
     /**
-     * @return int|mixed
+     * @return int|null
      */
     public function getId_produccion() : ?int
     {
@@ -55,11 +48,11 @@ class Produccion extends AbstractDBConnection implements Model, JsonSerializable
     }
 
     /**
-     * @param int|null $id_produccion
+     * @param int|null $id_Produccion
      */
-    public function setId_produccion(?int $id_produccion): void
+    public function setId_produccion(?int $id_Produccion): void
     {
-        $this->id_produccion = $id_produccion;
+        $this->id_produccion = $id_Produccion;
     }
 
     /**
@@ -77,38 +70,22 @@ class Produccion extends AbstractDBConnection implements Model, JsonSerializable
     {
         $this->fecha = $fecha;
     }
-
     /**
-     * @return int|mixed
+     * @return mixed|string
      */
-    public function getcantidad() : ?int
+    public function getcantidad() : float
     {
         return $this->cantidad;
     }
 
     /**
-     * @param int|null $cantidad
+     * @param mixed|string $cantidad
+     * @return float
      */
-    public function setcantidad (?int $cantidad): void
+    public function setcantidad(string $cantidad): float
     {
         $this->cantidad = $cantidad;
     }
-    /**
-     * @return int|mixed
-     */
-    public function getproducto_id() : ?int
-    {
-        return $this->producto_id;
-    }
-
-    /**
-     * @param int|null $producto_id
-     */
-    public function setproducto_id (?int $producto_id): void
-    {
-        $this->producto_id = $producto_id;
-    }
-
 
     /**
      * @return Carbon
@@ -142,21 +119,19 @@ class Produccion extends AbstractDBConnection implements Model, JsonSerializable
         $this->updated_at = $updated_at;
     }
 
-
-
     /**
-     * @param string $query
-     * @return bool|null
+     * retorna un array de fotos que pertenecen al producto
+     * @return array
      */
+
     protected function save(string $query): ?bool
     {
         $arrData = [
             ':id' =>    $this->getId_produccion(),
-            ':fecha_nacimiento' =>  $this->getFecha()->toDateString(), //YYYY-MM-DD
-            ':cantidad' =>   $this->getCantidad(),
-            ':producto_id' =>   $this->getproducto_id(),
+            ':fecha' =>   $this->getfecha(),
+            ':cantidad' =>   $this->getcantidad(),
             ':created_at' =>  $this->getCreatedAt()->toDateTimeString(), //YYYY-MM-DD HH:MM:SS
-            ':updated_at' =>  $this->getUpdatedAt()->toDateTimeString()
+            ':updated_at' =>  $this->getUpdatedAt()->toDateTimeString() //YYYY-MM-DD HH:MM:SS
         ];
         $this->Connect();
         $result = $this->insertRow($query, $arrData);
@@ -167,11 +142,9 @@ class Produccion extends AbstractDBConnection implements Model, JsonSerializable
     /**
      * @return bool|null
      */
-    public function insert(): ?bool
+    function insert(): ?bool
     {
-        $query = "INSERT INTO dbdoblea.produccion VALUES (
-            :id_produccion,:fecha,:cantidad,:producto_id
-        )";
+        $query = "INSERT INTO dbdoblea.produccion VALUES (:id_produccion,:fecha,:cantidad,:created_at,:updated_at)";
         return $this->save($query);
     }
 
@@ -180,22 +153,24 @@ class Produccion extends AbstractDBConnection implements Model, JsonSerializable
      */
     public function update(): ?bool
     {
-        $query = "UPDATEdbdoblea.produccion SET 
-           fecha = :fecha, cantidad = :cantidad, producto_id = :producto_id,  WHERE id_produccion = :id_produccion";
-
+        $query = "UPDATE dbdoblea.produccion SET 
+            fecha = :fecha, cantidad = :cantidad, created_at = :created_at,updated_at = :updated_at WHERE id_produccion = :id_produccion";
         return $this->save($query);
     }
 
-    /**
-     * @param $id_produccion
+
+    /*                                OJO
+     * ---------------------------------------------------------------------
      * @return bool
      * @throws Exception
-     */
+
     public function deleted(): bool
     {
-        $this->setFecha(''); //
-        return $this->update();                    //
+        $this->setEstado("Inactivo"); //Cambia el estado del Usuario
+        return $this->update();                    //Guarda los cambios..
     }
+    -------------------------------------------------------------------------
+     **/
 
     /**
      * @param $query
@@ -228,17 +203,17 @@ class Produccion extends AbstractDBConnection implements Model, JsonSerializable
      * @return Produccion
      * @throws Exception
      */
-    public static function searchForId(int $id_Produccion): ?Produccion
+    public static function searchForId($id_produccion) : ?Producto
     {
         try {
-            if ($id_Produccion> 0) {
-                $tmpProduccion = new Produccion();
-                $tmpProduccion->Connect();
-                $getrow = $tmpProduccion->getRow("SELECT * FROM dbdoblea.Produccion WHERE id =?", array($id_Produccion));
-                $tmpProduccion->Disconnect();
+            if ($id_produccion > 0) {
+                $Produccion = new Produccion();
+                $Produccion->Connect();
+                $getrow = $Produccion->getRow("SELECT * FROM dbdoblea.produccion WHERE id_produccion =?", array($id_produccion));
+                $Produccion->Disconnect();
                 return ($getrow) ? new Produccion($getrow) : null;
             }else{
-                throw new Exception('Id de usuario Invalido');
+                throw new Exception('Id de produccion Invalido');
             }
         } catch (Exception $e) {
             GeneralFunctions::logFile('Exception',$e, 'error');
@@ -250,19 +225,20 @@ class Produccion extends AbstractDBConnection implements Model, JsonSerializable
      * @return array
      * @throws Exception
      */
-    public static function getAll(): array
+    public static function getAll() : ?array
     {
-        return Produccion::search("SELECT * FROM dbdoblea.Produccion");
+        return Produccion::search("SELECT * FROM dbdoblea.produccion");
     }
 
     /**
-     * @param $id_produccion
+     * @param $nombre
      * @return bool
      * @throws Exception
      */
-    public static function Produccionregistrada($id_produccion): bool
+    public static function produccionRegistrada($fecha): bool
     {
-        $result = produccion::search("SELECT * FROM dbdoblea.produccion where produccion = " . $id_produccion);
+        $fecha = trim(strtolower($fecha));
+        $result = Produccion::search("SELECT id FROM dbdoblea.produccion where fecha = '" . $fecha. "'");
         if ( !empty($result) && count ($result) > 0 ) {
             return true;
         } else {
@@ -270,22 +246,25 @@ class Produccion extends AbstractDBConnection implements Model, JsonSerializable
         }
     }
 
-    /**
-     * @return string
-     */
-    public function __toString() : string
-    {
-        return "id_produccion: $this->id_produccion, cantidad: $this->cantidad, $this->fecha->toDateTimeString(),producto_id: $this->producto_id";
-    }
 
+    /**
+     * Specify data which should be serialized to JSON
+     * @link https://php.net/manual/en/jsonserializable.jsonserialize.php
+     * @return mixed data which can be serialized by <b>json_encode</b>,
+     * which is a value of any type other than a resource.
+     * @since 5.4
+     */
     public function jsonSerialize()
     {
         return [
-            'id_produccion' => $this->getId_produccion(),
-            'fecha' => $this->getFecha()->toDateString(),
+            'fecha' => $this->getFecha(),
             'cantidad' => $this->getcantidad(),
-            'created_at' => $this->getCreatedAt()->toDateTimeString(),
-            'updated_at' => $this->getUpdatedAt()->toDateTimeString(),
+
         ];
+    }
+
+    function deleted()
+    {
+
     }
 }

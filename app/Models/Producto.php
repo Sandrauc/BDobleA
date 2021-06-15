@@ -89,12 +89,12 @@ class Producto extends AbstractDBConnection implements Model, JsonSerializable
     }
 
     /**
-     * @param mixed|string $nombre
+     * @param mixed|string $tamano
      * @return float
      */
     public function settamano(string $tamano): float
     {
-        $this->Tamano = $tamano;
+        $this->tamano = $tamano;
     }
     /**
      * @return float|mixed
