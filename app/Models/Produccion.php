@@ -32,9 +32,13 @@ class Produccion extends AbstractDBConnection implements Model, JsonSerializable
         $this->setUpdatedAt(!empty($produccion['updated_at']) ? Carbon::parse($produccion['updated_at']) : new Carbon());
     }
 
+    public static function produccionIsInArray(?int $getId_produccion, array $arrExcluir)
+    {
+    }
+
     function __destruct()
     {
-        if($this->isConnected){
+        if($this->isConnected()){
             $this->Disconnect();
         }
     }

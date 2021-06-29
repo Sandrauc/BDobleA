@@ -3,7 +3,7 @@
     <!-- Brand Logo -->
     <a href="/vendor/almasaeed2010/adminlte/index3.html" class="brand-link">
 
-        <img src="<?= $baseURL ?>/views/public/img/weber-icon.png"
+        <img src="<?= $baseURL ?>/views/public/img/Icon-Doblea.png"
              alt="AdminLTE Logo"
              class="brand-image img-circle elevation-3"
              style="opacity: .8">
@@ -15,7 +15,7 @@
         <!-- Sidebar user (optional) -->
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
             <div class="image">
-                <img src="<?= $baseURL ?>/views/public/img/user.png" class="img-circle elevation-2" alt="User Image">
+                <img src="<?= $baseURL ?>/views/public/img/icon-user_doblea.png" class="img-circle elevation-2" alt="User Image">
             </div>
             <div class="info">
                 <a href="#" class="d-block"> <?= $_SESSION['UserInSession']['nombres'] ?? 'Invitado' ?> </a>
@@ -60,6 +60,29 @@
                     </ul>
                 </li>
 
+                <li class="nav-item has-treeview <?= strpos($_SERVER['REQUEST_URI'],'produccion') ? 'menu-open' : '' ?>">
+                    <a href="#" class="nav-link <?= strpos($_SERVER['REQUEST_URI'],'produccion') ? 'active' : '' ?>">
+                        <i class="nav-icon far fa-user"></i>
+                        <p>
+                            Produccion
+                            <i class="fas fa-angle-left right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="<?= $baseURL ?>/views/modules/produccion/index.php" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Gestionar</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="<?= $baseURL ?>/views/modules/produccion/create.php" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Registrar</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
 
         </nav>

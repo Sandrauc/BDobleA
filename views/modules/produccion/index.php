@@ -35,7 +35,7 @@ use app\Controllers\ProduccionController;
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
-                            <li class="breadcrumb-item"><a href="<?= $baseURL; ?>/Views/">BDobleA</a></li>
+                            <li class="breadcrumb-item"><a href="<?= $baseURL; ?>/Views/">Balones Doble A</a></li>
                             <li class="breadcrumb-item active">Inicio</li>
                         </ol>
                     </div>
@@ -113,7 +113,7 @@ use app\Controllers\ProduccionController;
                                                     <td><?php echo $Produccion->getid_produccion(); ?></td>
                                                     <td><?php echo $Produccion->getfecha(); ?></td>
                                                     <td><?php echo $Produccion->getcantidad(); ?></td>
-                                                    <td><?php echo $Produccion->getproducto_id(); ?>%</td>
+
                                                     <td>
                                                         <a href="edit.php?id=<?php echo $Produccion->getid_produccion(); ?>"
                                                            type="button" data-toggle="tooltip" title="Actualizar"

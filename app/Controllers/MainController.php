@@ -10,8 +10,11 @@ if(session_status() == PHP_SESSION_NONE){ //Si la session no ha iniciado
 
 if (!empty($_GET['controller'])){
 
-    unset( $_SESSION['frm'.ucfirst($_GET['controller'])] );
-    $_SESSION['frm'.ucfirst($_GET['controller'])] = $_POST; //Guarda Valores en la sesion por si hay erroes en el formulario
+    if(!empty($_POST['frmName'])){ //Si se envia el nombre del formulario
+        $nameForm = $_POST['frmName'];
+        unset($_POST[$nameForm], $_POST['frmName']);
+        $_SESSION[$nameForm] = $_POST; //Guarda Valores en la sesion por si hay erroes en el formulario
+    }
 
     $nameController = 'App\Controllers\\'.(ucfirst($_GET['controller'])."Controller");
     if(class_exists($nameController)){
@@ -19,7 +22,7 @@ if (!empty($_GET['controller'])){
         if (!empty($_GET['action']) and method_exists($controller, $_GET['action'])) {
             if(!empty($_GET['id'])){
                 $controller->{$_GET['action']}($_GET['id']);
-            }else if(!empty($_POST['request']) && $_POST['request'] == "ajax"){
+            }else if (!empty($_POST['request']) && $_POST['request'] == "ajax") {
                 //echo call_user_func_array(array($controller, $_GET['action']), $_POST);
                 echo $controller->{$_GET['action']}($_POST);
             }else{
